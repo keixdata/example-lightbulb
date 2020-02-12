@@ -2,7 +2,7 @@
   "name": "test-andrea-cqrs",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@keix/message-store-client": "^1.0.0-beta19",
     "@types/uuid": "^3.4.7",
