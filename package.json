@@ -3,11 +3,17 @@
     "version": "1.0.0",
     "main": "index.js",
     "license": "AGPL-3.0-or-later",
+    "scripts": {
+        "test": "jest"
+    },
     "dependencies": {
         "@keix/message-store-client": "^1.0.0-beta19",
+        "@types/jest": "^25.1.2",
         "@types/mongoose": "^5.7.1",
         "@types/uuid": "^3.4.7",
+        "jest": "^25.1.0",
         "mongoose": "^5.9.0",
+        "ts-jest": "^25.2.0",
         "uuid": "^3.4.0"
     },
     "devDependencies": {
