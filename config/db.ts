@@ -1,0 +1,1 @@
+export let database = "mongodb://keix85:keix85@ds217799.mlab.com:17799/cqrs"
