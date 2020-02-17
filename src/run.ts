@@ -45,23 +45,23 @@ const id = "aecbf732-8cec-46b1-bb7c-207852ab7a1d"; // v4();
 //   console.log(res);
 // })
 
-sendCommand({
-  category: "lightbulb",
-  command: "TURN_LIGHT_ON",
-  id,
-  data: { id }
-}).then(res => {
-  console.log(res);
-});
-
 // sendCommand({
 //   category: "lightbulb",
-//   command: "TURN_LIGHT_OFF",
+//   command: "TURN_LIGHT_ON",
 //   id,
 //   data: { id }
 // }).then(res => {
 //   console.log(res);
 // });
+
+sendCommand({
+  category: "lightbulb",
+  command: "TURN_LIGHT_OFF",
+  id,
+  data: { id }
+}).then(res => {
+  console.log(res);
+});
 async function handle(msg: LightbulbCommands) {
   const { global_position } = msg;
 
@@ -98,10 +98,10 @@ async function handle(msg: LightbulbCommands) {
     }
     case "TURN_LIGHT_OFF": {
       let isOff = await checkIfLightIsTurnedOff(msg);
-      // console.log(myArr)
-
-      // console.log("global postion:  ",global_position)
-      if (!isOff) {
+      const lastMessage = await readLastMessage({ streamName: `lightbulb-${msg.data.id}` })
+      console.log(lastMessage.global_position)
+      console.log("global postion:  ",global_position)
+      if (!isOff  && global_position > lastMessage.global_position) {
         // console.log('SPEGNI LA LUCE')
         // se accesa spengo.
         return emitEvent({
