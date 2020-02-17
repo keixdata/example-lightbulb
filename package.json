@@ -7,7 +7,7 @@
         "test": "jest"
     },
     "dependencies": {
-        "@keix/message-store-client": "^1.0.0-beta19",
+        "@keix/message-store-client": "^1.0.0-beta21",
         "@types/jest": "^25.1.2",
         "@types/mongoose": "^5.7.1",
         "@types/uuid": "^3.4.7",

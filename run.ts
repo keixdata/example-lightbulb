@@ -9,10 +9,10 @@ import {
   
   import { v4 } from "uuid";
   import { LightbulbCommands } from './types'
-  import { checkIfLightIsTurnedOff, checkIfLightIsTurnedOn } from './projectors'
+  import { checkIfLightIsTurnedOn } from './projectors'
 //   import mongoose from "mongoose";
 //   import { updateStateOnMongo ,howManyLightsAndStates} from './aggregators'
-//   const id = "aecbf732-8cec-46b1-bb7c-207852ab7a1d"; // v4();
+  const id = "aecbf732-8cec-46b1-bb7c-207852ab7a1d"; // v4();
 //   const id1 = "aecbf732-8cec-46b1-bb7c-207852ab7a2e"; // v4();
   
   
@@ -45,20 +45,20 @@ import {
   //   console.log(res);
   // })
   
-  // sendCommand({
-  //   category: "lightbulb",
-  //   command: "TURN_LIGHT_ON",
-  //   id,
-  //   data: { id }
-  // }).then(res => {
-  //   console.log(res);
-  // });
+  sendCommand({
+    category: "lightbulb",
+    command: "TURN_LIGHT_ON",
+    id,
+    data: { id }
+  }).then(res => {
+    console.log(res);
+  });
   
   // sendCommand({
   //   category: "lightbulb",
   //   command: "TURN_LIGHT_OFF",
-  //   id:id1,
-  //   data: { id:id1 }
+  //   id,
+  //   data: { id }
   // }).then(res => {
   //   console.log(res);
   // });
@@ -69,7 +69,7 @@ import {
         const lastMessage = await readLastMessage({ streamName: `lightbulb-${msg.data.id}` })
         if (lastMessage == null) {
           /**non ci sono eventi sull light */
-          console.log(msg)
+          // console.log(msg)
           return emitEvent({
             category: "lightbulb",
             event: "LIGHTBULB_INSTALLED",
@@ -80,10 +80,10 @@ import {
         break;
       }
       case "TURN_LIGHT_ON": {
-        const lastMessageOn = await readLastMessage({ streamName: `lightbulb-${msg.data.id}` })
-        console.log(lastMessageOn)
+        let isOn = await checkIfLightIsTurnedOn(msg)
+        console.log("TURN_LIGHT_ON:  ",isOn)
         // se true  Accendo.
-        if (await checkIfLightIsTurnedOn(msg) && lastMessageOn !== null) {
+        if (isOn ) {
           console.log('prima volta ON')
           return emitEvent({
             category: "lightbulb",
@@ -95,8 +95,10 @@ import {
         break;
       }
       case "TURN_LIGHT_OFF": {
-        if (await checkIfLightIsTurnedOff(msg)) {
-          console.log('entrato')
+        let isOn = await checkIfLightIsTurnedOn(msg);
+        console.log("TURN_LIGHT_OFF:  ",isOn)
+        if (!isOn) {
+          console.log('SPEGNI LA LUCE')
           // se accesa spengo.
           return emitEvent({
             category: "lightbulb",
