@@ -9,7 +9,7 @@ import {
   
   import { v4 } from "uuid";
   import { LightbulbCommands } from './types'
-  import { checkIfLightIsTurnedOn } from './projectors'
+  import { checkIfLightIsTurnedOff,checkIfLightIsTurnedOn } from './projectors'
 //   import mongoose from "mongoose";
 //   import { updateStateOnMongo ,howManyLightsAndStates} from './aggregators'
   const id = "aecbf732-8cec-46b1-bb7c-207852ab7a1d"; // v4();
@@ -45,23 +45,23 @@ import {
   //   console.log(res);
   // })
   
-  sendCommand({
-    category: "lightbulb",
-    command: "TURN_LIGHT_ON",
-    id,
-    data: { id }
-  }).then(res => {
-    console.log(res);
-  });
-  
   // sendCommand({
   //   category: "lightbulb",
-  //   command: "TURN_LIGHT_OFF",
+  //   command: "TURN_LIGHT_ON",
   //   id,
   //   data: { id }
   // }).then(res => {
   //   console.log(res);
   // });
+  
+  sendCommand({
+    category: "lightbulb",
+    command: "TURN_LIGHT_OFF",
+    id,
+    data: { id }
+  }).then(res => {
+    console.log(res);
+  });
   async function handle(msg: LightbulbCommands) {
     // console.log(msg.type)
     switch (msg.type) {
@@ -95,7 +95,7 @@ import {
         break;
       }
       case "TURN_LIGHT_OFF": {
-        let isOn = await checkIfLightIsTurnedOn(msg);
+        let isOn = await checkIfLightIsTurnedOff(msg);
         console.log("TURN_LIGHT_OFF:  ",isOn)
         if (!isOn) {
           console.log('SPEGNI LA LUCE')

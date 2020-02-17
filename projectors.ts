@@ -14,11 +14,11 @@ export async function checkIfLightIsTurnedOn(msg: LightbulbCommands) {
 
         switch (type) {
             case "LIGHT_TURNED_ON":
-                console.log('era gia accessa', prev);
+                // console.log('era gia accessa', prev);
                 return false
-            case "LIGHT_TURNED_OFF":
-                console.log('era gia accessa e lo spenta', prev);
-                return true
+            // case "LIGHT_TURNED_OFF":
+            //     // console.log('era gia accessa e lo spenta', prev);
+            //     return prev
 
             default:
                 return prev;
@@ -30,39 +30,34 @@ export async function checkIfLightIsTurnedOn(msg: LightbulbCommands) {
             streamName: `lightbulb-${msg.data.id}`
         },
         reducer,
-        false
+        true
     );
     return isTurnedOff;
 }
 
 
-// export async function checkIfLightIsTurnedOff(msg: LightbulbCommands) {
-//     const reducer = (prev: boolean, next: Message<string>) => {
-//         // console.log("Next:  ", next.type)
-//         const { type } = next;
-//         switch (type) {
-//             case "LIGHT_TURNED_ON": {
-//                 // console.log("SE ACCESA:  ", next)
-//                 return true
-//             }
-//             case "LIGHT_TURNED_OFF": {
-//                 // console.log("SE SPENTA : ", next)
-//                 return false
-//             }
-//             default:
-//                 return prev;
-//         }
-//     };
-//     /**ESEGUO IL PROIETTORE SUGLI EVENTI LIGHBULB */
-//     const isTurnedOn = await runProjector(
-//         {
-//             streamName: `lightbulb-${msg.data.id}`
-//         },
-//         reducer,
-//         true
-//     );
+export async function checkIfLightIsTurnedOff(msg: LightbulbCommands) {
+    const reducer = (prev: boolean, next: Message<string>) => {
+        const { type } = next;
+        switch (type) {
+        
+            case "LIGHT_TURNED_OFF": {
+                return true
+            }
+            default:
+                return true;
+        }
+    };
+    /**ESEGUO IL PROIETTORE SUGLI EVENTI LIGHBULB */
+    const isTurnedOn = await runProjector(
+        {
+            streamName: `lightbulb-${msg.data.id}`
+        },
+        reducer,
+        false
+    );
 
-//     return isTurnedOn;
+    return isTurnedOn;
 
-// }
+}
 
