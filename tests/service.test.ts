@@ -1,5 +1,5 @@
 import { testUtils } from '@keix/message-store-client';
-import { run } from "../run"
+import { run } from "../src/run"
 import { v4 } from 'uuid';
 
 let stop: Function = () => null;

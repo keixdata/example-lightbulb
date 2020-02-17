@@ -4,7 +4,8 @@
       "module": "commonjs",
       "lib": ["dom", "es2016", "esnext.asynciterable"],
       "moduleResolution": "node",
-      "outDir": "./dist",
+      "outDir": "src/dist",
+      "baseUrl": "src",
       "strict": true,
       "strictPropertyInitialization": false,
       "sourceMap": true,
@@ -12,5 +13,6 @@
       "experimentalDecorators": true,
       "esModuleInterop": true
     },
-    "include": [".index.ts"]
+    // "include": ["./index.ts"],
+    "exclude": ["src/dist","node_modules"]
   }
