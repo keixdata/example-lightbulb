@@ -1,5 +1,5 @@
 import { testUtils } from '@keix/message-store-client';
-import { run } from "../src/run"
+import { run } from "../src/run";
 import { v4 } from 'uuid';
 
 let stop: Function = () => null;
@@ -26,12 +26,16 @@ afterEach(() => {
 
 it('should turned on', async () => {
     const id = v4();
-    const id1 = v4();
+
+
     // Fake send command.
     testUtils.setupMessageStore([
-        { stream_name: `lightbulb:command-${id}`, type: "INSTALL_LIGHT", data: { id }, metadata: {} },
+        { stream_name: `lightbulb:command-${id}`, type: "INSTALL_LIGHT", data: { id }, metadata: { traceId: 'abc' } },
         // { stream_name: `lightbulb-${id}`, type: "LIGHTBULB_INSTALLED", data: { id }, metadata: {} },
-        { stream_name: `lightbulb:command-${id}`, type: "TURN_LIGHT_ON", data: { id }, metadata: {} }
+        { stream_name: `lightbulb:command-${id}`, type: "TURN_LIGHT_ON", data: { id }, metadata: { traceId: 'def' } },
+        { stream_name: `lightbulb:command-${id}`, type: "TURN_LIGHT_OFF", data: { id }, metadata: { traceId: 'fgh' } },
+        { stream_name: `lightbulb:command-${id}`, type: "TURN_LIGHT_ON", data: { id }, metadata: { traceId: 'def' } }
+
     ]);
 
 
@@ -41,10 +45,10 @@ it('should turned on', async () => {
     await testUtils.waitForExpect(() => {
 
         const messages = testUtils.getStreamMessages(`lightbulb-${id}`);
-    
-        console.log("EVENT STORE:  ",messages)
-    
-        //   expect(messages).toHaveLength(1);
+
+        console.log("EVENT STORE:  ", messages)
+
+        expect(messages).toHaveLength(3);
     })
 
 })

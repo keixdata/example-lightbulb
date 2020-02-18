@@ -5,35 +5,15 @@ import {
   runProjector,
   Message, readLastMessage
 } from "@keix/message-store-client";
-import { database } from './config/db'
+
 
 import { v4 } from "uuid";
 import { LightbulbCommands } from './types'
 import { checkIfLightIsTurnedOff } from './projectors'
-//   import mongoose from "mongoose";
-//   import { updateStateOnMongo ,howManyLightsAndStates} from './aggregators'
-const id = "aecbf732-8cec-46b1-bb7c-207852ab7a1d"; // v4();
+
+const id = "aecbf732-8cec-46b1-bb7c-207852ab7a5d"; // v4();
 //   const id1 = "aecbf732-8cec-46b1-bb7c-207852ab7a2e"; // v4();
 
-
-
-//   mongoose.set("useCreateIndex", true);
-//   mongoose.set("useFindAndModify", false);
-//   mongoose.set("debug", false);
-//   mongoose.connect(`${database}`, {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true
-//   });
-
-//   // On Connection
-//   mongoose.connection.on("connected", () => {
-//     console.log(`Connected to database:  ${database}`);
-//   });
-
-//   // On Error
-//   mongoose.connection.on("error", err => {
-//     console.log("Database error: " + err);
-//   });
 
 
 // sendCommand({
@@ -54,17 +34,17 @@ const id = "aecbf732-8cec-46b1-bb7c-207852ab7a1d"; // v4();
 //   console.log(res);
 // });
 
-sendCommand({
-  category: "lightbulb",
-  command: "TURN_LIGHT_OFF",
-  id,
-  data: { id }
-}).then(res => {
-  console.log(res);
-});
+// sendCommand({
+//   category: "lightbulb",
+//   command: "TURN_LIGHT_OFF",
+//   id,
+//   data: { id }
+// }).then(res => {
+//   console.log(res);
+// });
 async function handle(msg: LightbulbCommands) {
-  const { global_position } = msg;
-
+  const { global_position, metadata } = msg;
+  // console.log('Msg', msg)
 
   switch (msg.type) {
     case "INSTALL_LIGHT": {
@@ -76,6 +56,7 @@ async function handle(msg: LightbulbCommands) {
           category: "lightbulb",
           event: "LIGHTBULB_INSTALLED",
           id: msg.data.id,
+          metadata,
           data: msg.data
         });
       }
@@ -83,14 +64,15 @@ async function handle(msg: LightbulbCommands) {
     }
     case "TURN_LIGHT_ON": {
       let isOff = await checkIfLightIsTurnedOff(msg)
-      const lastMessage = await readLastMessage({ streamName: `lightbulb-${msg.data.id}` })
+      // console.log(isOff)
       // se true  Accendo.
-      if (isOff && global_position > lastMessage.global_position ) {
+      if (isOff) {
         // console.log('prima volta ON ')
         return emitEvent({
           category: "lightbulb",
           event: "LIGHT_TURNED_ON",
           id: msg.data.id,
+          metadata,
           data: msg.data
         });
       }
@@ -98,16 +80,15 @@ async function handle(msg: LightbulbCommands) {
     }
     case "TURN_LIGHT_OFF": {
       let isOff = await checkIfLightIsTurnedOff(msg);
-      const lastMessage = await readLastMessage({ streamName: `lightbulb-${msg.data.id}` })
-      console.log(lastMessage.global_position)
-      console.log("global postion:  ",global_position)
-      if (!isOff  && global_position > lastMessage.global_position) {
+      // console.log(isOff)
+      if (!isOff) {
         // console.log('SPEGNI LA LUCE')
         // se accesa spengo.
         return emitEvent({
           category: "lightbulb",
           event: "LIGHT_TURNED_OFF",
           id: msg.data.id,
+          metadata,
           data: msg.data
         });
       }
