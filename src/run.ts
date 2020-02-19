@@ -9,9 +9,9 @@ import {
 
 import { v4 } from "uuid";
 import { LightbulbCommands } from './types'
-import { checkIfLightIsTurnedOff } from './projectors'
+import { checkIfLightIsTurnedOff ,checkIfLigthIsInstalled} from './projectors'
 
-const id = "aecbf732-8cec-46b1-bb7c-207852ab7a5d"; // v4();
+const id = "aecbf732-8cec-46b1-bb7c-207852ab7a3d"; // v4();
 //   const id1 = "aecbf732-8cec-46b1-bb7c-207852ab7a2e"; // v4();
 
 
@@ -24,6 +24,16 @@ const id = "aecbf732-8cec-46b1-bb7c-207852ab7a5d"; // v4();
 // }).then(res => {
 //   console.log(res);
 // })
+
+
+sendCommand({
+  category: "lightbulb",
+  command: "UNINSTALL_LIGHT",
+  id,
+  data: { id }
+}).then(res => {
+  console.log(res);
+})
 
 // sendCommand({
 //   category: "lightbulb",
@@ -62,6 +72,21 @@ async function handle(msg: LightbulbCommands) {
       }
       break;
     }
+    case "UNINSTALL_LIGHT": {
+      let isInstalled = await checkIfLigthIsInstalled(msg)
+      // console.log(isInstalled)
+      if(!isInstalled){
+        return emitEvent({
+          category: "lightbulb",
+          event: "LIGHT_UNINSTALLED",
+          id: msg.data.id,
+          metadata,
+          data: msg.data
+        });
+      }
+      break;
+    };
+
     case "TURN_LIGHT_ON": {
       let isOff = await checkIfLightIsTurnedOff(msg)
       // console.log(isOff)

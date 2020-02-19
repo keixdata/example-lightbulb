@@ -113,28 +113,27 @@ export async function howManyLightsInstalled() {
             case "LIGHTBULB_INSTALLED": {
                 myArr.push(msg.id)
                 // console.log("myarr:  ", myArr.length);
-                client.sadd('lightsId', msg.id);
+                // client.sadd('lightsId', msg.id);
+                // console.log(myArr.length)
+                client.set('lightCounter', myArr.length)
+                // client.smembers('lightsId', function (err: any, reply: any) {
+                //     // console.log(reply.length)
+                //     if (reply.length === 0) {
+                //         client.sadd('lightsId', msg.id);
+                //         client.incr('lightCounter', (err: any, id: any) => {
+                //             client.get('lightCounter')
+                //         })
+                //     } else if (myArr.length > reply.length) {
+                //         console.log('mio array maggionre di rediarray')
+                //         client.sadd('lightsId', msg.id);
 
-                client.smembers('lightsId', function (err: any, reply: any) {
-                    // console.log(reply.length)
-                    if (reply.length === 0) {
-                        client.sadd('lightsId', msg.id);
-                        client.incr('lightCounter', (err: any, id: any) => {
-                            client.get('lightCounter')
-                        })
-                    } else if (myArr.length > reply.length) {
-                        client.sadd('lightsId', msg.id);
-
-                        client.incr('lightCounter', (err: any, id: any) => {
-                            client.get('lightCounter')
-                        })
-                    }
-                });
-
+                //         client.incr('lightCounter', (err: any, id: any) => {
+                //             client.get('lightCounter')
+                //         })
+                //     }
+                // });
                 break;
-
             }
-
             default:
                 return;
         }
@@ -162,12 +161,12 @@ export async function howLongOn() {
         const { type } = msg;
 
         switch (type) {
-            case "LIGHT_TURNED_ON":{
-                
+            case "LIGHT_TURNED_ON": {
+
                 break;
             }
-                
-        
+
+
             default:
                 break;
         }
