@@ -1,8 +1,8 @@
 import { run } from './run'
-import { saveOnRedis, howManyLightsInstalled } from './aggregators'
+import { howLongOn, howManyLightsInstalled } from './aggregators'
 
 
-//run();
- howManyLightsInstalled();
+//  run();
+// howManyLightsInstalled();
 
-// howLongOn();
+howLongOn();

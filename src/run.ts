@@ -9,9 +9,9 @@ import {
 
 import { v4 } from "uuid";
 import { LightbulbCommands } from './types'
-import { checkIfLightIsTurnedOff ,checkIfLigthIsInstalled} from './projectors'
+import { checkIfLightIsTurnedOff, checkIfLigthIsInstalled } from './projectors'
 
-const id = "aecbf732-8cec-46b1-bb7c-207852ab7a3d"; // v4();
+const id = "aecbf732-8cec-46b1-bb7c-207852ab7a2d"; // v4();
 //   const id1 = "aecbf732-8cec-46b1-bb7c-207852ab7a2e"; // v4();
 
 
@@ -74,8 +74,9 @@ async function handle(msg: LightbulbCommands) {
     }
     case "UNINSTALL_LIGHT": {
       let isInstalled = await checkIfLigthIsInstalled(msg)
-      // console.log(isInstalled)
-      if(!isInstalled){
+      console.log(msg)
+      console.log(isInstalled)
+      if (!isInstalled && msg.position !== 0) {
         return emitEvent({
           category: "lightbulb",
           event: "LIGHT_UNINSTALLED",
@@ -89,7 +90,7 @@ async function handle(msg: LightbulbCommands) {
 
     case "TURN_LIGHT_ON": {
       let isOff = await checkIfLightIsTurnedOff(msg)
-      // console.log(isOff)
+      
       // se true  Accendo.
       if (isOff) {
         // console.log('prima volta ON ')

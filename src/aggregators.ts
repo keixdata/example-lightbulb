@@ -19,51 +19,7 @@ client.on('connect', function () {
 
 // import Ligths, { findLigthByIdAndUpdate, resetNumberOfLigths, incrementNumberOfLights, readNumberOfLights } from './models/lights'
 
-/**AGGREAGATOR CHE AGGIONRA LO STATE DELLE LIGHTS INSTALLATE */
-export async function saveOnRedis() {
-    async function handle(msg: LightBulbEvents) {
 
-        const { type } = msg
-        switch (type) {
-            case "LIGHTBULB_INSTALLED":
-                client.sadd(['light', "id", msg.id, "type", msg.type, msg.time], (err: any, reply: any) => {
-                    console.log(reply); // 3
-                });
-
-                client.exists('light', function (err: any, reply: any) {
-                    if (reply === 1) {
-                        client.smembers('light', function (err: any, reply: any) {
-                            console.log(reply);
-                        });
-                        console.log('exists');
-                    } else {
-                        console.log('doesn\'t exist');
-                    }
-                })
-                // let lights = new Ligths({ id: msg.data.id, state: false });
-                // await lights.save();
-                break;
-            case "LIGHT_TURNED_ON":
-                // console.log("Id", msg)
-                // await findLigthByIdAndUpdate(msg.data.id, { state: true });
-                break;
-            case "LIGHT_TURNED_OFF":
-                // console.log("Id", el)
-                // await findLigthByIdAndUpdate(msg.data.id, { state: false });
-                break;
-            default:
-                return
-        }
-
-    }
-    subscribe(
-        {
-            streamName: "lightbulb"
-        },
-        handle
-    );
-
-};
 /**=========================================
  *  AGGREGATOR QUANTE LAMPADINE INSTALLATE 
  ===========================================* */
@@ -84,7 +40,7 @@ export async function howManyLightsInstalled() {
                     } else {
                         client.get("lightCounter", (err: any, data: any) => { data > 0 ? console.log("Le lampadine installate sono : ", data) : console.log('non ci son lampadine installate') })
                     };
-                 });
+                });
                 break;
             };
             case "LIGHT_UNINSTALLED": {
@@ -97,7 +53,7 @@ export async function howManyLightsInstalled() {
                 };
             };
 
-            default:{
+            default: {
                 return console.log('non ci sono luci installate')
             }
         }
@@ -110,6 +66,45 @@ export async function howManyLightsInstalled() {
     );
 }
 
+
+
+
+/**===========================================================
+ * AGGREAGATOR CHE AGGIONRA LO STATE DELLE LIGHTS INSTALLATE 
+ * crea un hash chiamato lightStats su redis con coppie chiavi valore,  
+ * le chiavi saranno gli id delle luci, i valori il numero di ore per cui le luci sono accese
+ * ===========================================================*/
+export async function howLongOn() {
+
+
+    async function handle(msg: LightBulbEvents) {
+        console.log(msg.time)
+        const { type } = msg
+        switch (type) {
+            case "LIGHT_TURNED_ON": {
+                // client.hmset('lightStats', msg.data.id, msg.time);
+                // console.log(msg.time)
+                break;
+            }
+            case "LIGHT_TURNED_OFF": {
+                // client.hmset('lightStats', msg.data.id, msg.time);
+                break;
+            }
+            default:
+                return
+        }
+    }
+    // client.hgetall('lightStats', function (err: any, object: any) {
+    //     console.log(object);
+    // });
+    subscribe(
+        {
+            streamName: "lightbulb"
+        },
+        handle
+    );
+
+};
 
 // export async function howLongOn() {
 
