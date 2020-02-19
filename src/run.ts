@@ -26,14 +26,14 @@ const id = "aecbf732-8cec-46b1-bb7c-207852ab7a3d"; // v4();
 // })
 
 
-sendCommand({
-  category: "lightbulb",
-  command: "UNINSTALL_LIGHT",
-  id,
-  data: { id }
-}).then(res => {
-  console.log(res);
-})
+// sendCommand({
+//   category: "lightbulb",
+//   command: "UNINSTALL_LIGHT",
+//   id,
+//   data: { id }
+// }).then(res => {
+//   console.log(res);
+// })
 
 // sendCommand({
 //   category: "lightbulb",

@@ -63,114 +63,70 @@ export async function saveOnRedis() {
         handle
     );
 
-}
-
-/**AGGREGATOR CHE MI RESTITUISCE QUANTE LAMPADINE E IL LORO STATO */
-
-export async function howManyLightsAndStates() {
-    //  resetNumberOfLigths();
-
-    //     async function handle(msg: LightBulbEvents) {
-    //         if  (msg.type === 'LIGHTBULB_INSTALLED') {
-    //              incrementNumberOfLights();
-
-    //              console.log("Now nubmer of lights are " + readNumberOfLights())
-    //         }
-    //         return Promise.resolve();
-    //     }
-    /*
-    async function handle(msg: LightBulbEvents) {
-        let myEvent = []
-        myEvent.push(msg)
-        await myEvent.reduce((prev, next) => {
-            let { qnt } = prev
-            const { type } = next;
-            switch (type) {
-                case "LIGHTBULB_INSTALLED":
-
-                    console.log(next)
-                    qnt++
-                    return { qnt }
-
-                default:
-                    return prev;
-            }
-
-        }, { qnt: 0 })
-    }*/
-
-    // subscribe({ streamName: "lightbulb" }, handle)
-
-}
-
-
-
+};
+/**=========================================
+ *  AGGREGATOR QUANTE LAMPADINE INSTALLATE 
+ ===========================================* */
 export async function howManyLightsInstalled() {
     let myArr: any = []
     async function handle(msg: LightBulbEvents) {
         const { type } = msg;
+        // console.log(msg)
+
         switch (type) {
             case "LIGHTBULB_INSTALLED": {
-                myArr.push(msg.id)
-                // console.log("myarr:  ", myArr.length);
-                // client.sadd('lightsId', msg.id);
-                // console.log(myArr.length)
-                client.set('lightCounter', myArr.length)
-                // client.smembers('lightsId', function (err: any, reply: any) {
-                //     // console.log(reply.length)
-                //     if (reply.length === 0) {
-                //         client.sadd('lightsId', msg.id);
-                //         client.incr('lightCounter', (err: any, id: any) => {
-                //             client.get('lightCounter')
-                //         })
-                //     } else if (myArr.length > reply.length) {
-                //         console.log('mio array maggionre di rediarray')
-                //         client.sadd('lightsId', msg.id);
-
-                //         client.incr('lightCounter', (err: any, id: any) => {
-                //             client.get('lightCounter')
-                //         })
-                //     }
-                // });
+                myArr.push(msg.id);
+                client.get("lightCounter", (err: any, data: any) => {
+                    if (myArr.length > data) {
+                        return client.incr('lightCounter', (err: any, id: any) => {
+                            client.get("lightCounter", (err: any, data: any) => { data > 0 ? console.log("Le lampadine installate sono : ", data) : console.log('non ci son lampadine installate') })
+                        })
+                    } else {
+                        client.get("lightCounter", (err: any, data: any) => { data > 0 ? console.log("Le lampadine installate sono : ", data) : console.log('non ci son lampadine installate') })
+                    };
+                 });
                 break;
+            };
+            case "LIGHT_UNINSTALLED": {
+                if (msg.position !== 0) {
+                    return client.decr('lightCounter', (err: any, id: any) => {
+                        client.get("lightCounter", (err: any, data: any) => { data > 0 ? console.log("Le lampadine installate sono : ", data) : console.log('non ci son lampadine installate') })
+                    });
+                } else {
+                    break
+                };
+            };
+
+            default:{
+                return console.log('non ci sono luci installate')
             }
-            default:
-                return;
         }
     };
-
     subscribe(
         {
             streamName: "lightbulb"
         },
         handle
     );
-
-    // client.del("lightCounter", (err: any, data: any) => { console.log("Le lampadine installate sono : ", data) })
-    // client.del("lightsId", (err: any, data: any) => { console.log("Le lampadine installate sono : ", data) })
-
-    client.get("lightCounter", (err: any, data: any) => { console.log("Le lampadine installate sono : ", data) })
 }
 
 
-export async function howLongOn() {
+// export async function howLongOn() {
 
-    subscribe({ streamName: "lightbulb" }, handle)
+//     subscribe({ streamName: "lightbulb" }, handle)
 
-    async function handle(msg: LightBulbEvents) {
-        const { type } = msg;
+//     async function handle(msg: LightBulbEvents) {
+//         const { type } = msg;
 
-        switch (type) {
-            case "LIGHT_TURNED_ON": {
+//         switch (type) {
+//             case "LIGHT_TURNED_ON": {
 
-                break;
-            }
-
-
-            default:
-                break;
-        }
-    }
+//                 break;
+//             }
 
 
-}
+//             default:
+//                 break;
+//         }
+//     }
+// }
