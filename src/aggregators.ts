@@ -5,9 +5,17 @@ import {
     runProjector,
     Message, readLastMessage
 } from "@keix/message-store-client";
-import { LightBulbEvents } from './types'
-const redis = require("redis");
-const client = redis.createClient();
+import { checkIfLightIsTurnedOff } from './projectors'
+import { LightBulbEvents, LightbulbCommands } from './types'
+import Redis from 'ioredis';
+import { Client, RequestParams } from '@elastic/elasticsearch';
+
+const elastic_Client = new Client({ node: "http://116.202.100.141:31807" });
+
+
+const client = new Redis();
+
+
 
 
 client.on("error", function (error: String) {
@@ -68,35 +76,66 @@ export async function howManyLightsInstalled() {
 
 
 
-
 /**===========================================================
  * AGGREAGATOR CHE AGGIONRA LO STATE DELLE LIGHTS INSTALLATE 
  * crea un hash chiamato lightStats su redis con coppie chiavi valore,  
  * le chiavi saranno gli id delle luci, i valori il numero di ore per cui le luci sono accese
  * ===========================================================*/
 export async function howLongOn() {
-
+    await client.del("howManyMinutesOff")
+    await client.del('howManyMinutesOn');
 
     async function handle(msg: LightBulbEvents) {
-        console.log(msg.time)
+
         const { type } = msg
         switch (type) {
             case "LIGHT_TURNED_ON": {
-                // client.hmset('lightStats', msg.data.id, msg.time);
-                // console.log(msg.time)
+                const reply = await client.exists('lightStats');
+
+                if (reply === 1) {
+                    let lastDate: any = await client.hmget('lightStats', msg.data.id);
+                    let dateOff: any = new Date(lastDate[0])
+
+                    let dateOn: any = new Date(msg.time)
+                    let diff = Math.abs(dateOn - dateOff);
+                    let minutes = Math.floor((diff / 1000) / 60);
+                    await client.hincrby("howManyMinutesOff", msg.data.id, minutes)
+
+                    await client.hmset('lightStats', msg.data.id, msg.time.toISOString())
+
+                } else {
+                    /**non esiste su redis */
+                    await client.hmset('lightStats', msg.data.id, msg.time.toISOString())
+
+                };
                 break;
             }
             case "LIGHT_TURNED_OFF": {
-                // client.hmset('lightStats', msg.data.id, msg.time);
+                // console.log(ms)
+                let lastDate: any = await client.hmget('lightStats', msg.data.id)
+                let dateOn: any = new Date(lastDate[0])
+                let dateOf: any = new Date(msg.time)
+
+                let diff = Math.abs(dateOn - dateOf);
+                let minutes = Math.floor((diff / 1000) / 60);
+                console.log(minutes)
+                console.log(await client.hincrby('howManyMinutesOn', msg.data.id, minutes))
+
+                await client.hmset('lightStats', msg.data.id, msg.time.toISOString())
                 break;
             }
             default:
+
+
                 return
         }
-    }
-    // client.hgetall('lightStats', function (err: any, object: any) {
-    //     console.log(object);
-    // });
+
+        let howManyMinutesOff = await client.hgetall('howManyMinutesOff')
+        let howManyMinutesOn = await client.hgetall("howManyMinutesOn")
+        console.log('la lampadina è stata spenta: ', howManyMinutesOff, "  minuti")
+        console.log('la lampadina è stata accesa: ', howManyMinutesOn, "  minuti")
+    };
+
     subscribe(
         {
             streamName: "lightbulb"
@@ -106,22 +145,106 @@ export async function howLongOn() {
 
 };
 
-// export async function howLongOn() {
 
-//     subscribe({ streamName: "lightbulb" }, handle)
+/**AGGREATOR CHE LEGGE LO STATO DELLE LAMPADINE E LE SALVE SU ELASTIC */
+export async function saveOnElastic() {
 
-//     async function handle(msg: LightBulbEvents) {
-//         const { type } = msg;
+    async function handle(msg: LightBulbEvents) {
+        const { type } = msg
+        switch (type) {
+            case "LIGHTBULB_INSTALLED": {
+                /**CREO INDEX */
+                let elasticSearch = await searchElasticObj(msg);
+                const { body } = elasticSearch;
+                if (body.error !== undefined) {
+                    console.log("ERRORE NON CI SONO LAMPADINE: ", body.error.reason)
+                    let newIndex = await createElasticIndex(msg);
+                    console.log(newIndex)
+                } else {
+                    console.log(type, body.hits.hits)
+                    // const  deleteObj  = await elastic_Client.indices.delete({
+                    //     index: 'lights',
+                    // })
+                    // console.log(deleteObj)
+                }
+                break;
+            }
+            case "LIGHT_TURNED_ON": {
+                /**AGGIORNO LO STATE A TRUE*/
+                let elasticSearch = await searchElasticObj(msg);
+                const { body: { hits: { hits } } } = elasticSearch
+                const updateParam: RequestParams.Update = {
+                    id: hits[0]._id,
+                    index: 'lights',
+                    body: { doc: { id: msg.data.id, state: true } }
+                };
 
-//         switch (type) {
-//             case "LIGHT_TURNED_ON": {
+                let updateElastic = await elastic_Client.update(updateParam);
+                return updateElastic
 
-//                 break;
-//             }
+            }
+            case "LIGHT_TURNED_OFF": {
+                /**AGGIORNO LO STATE A FALSE*/     
 
+                let elasticSearch = await searchElasticObj(msg);
+                const { body: { hits: { hits } } } = elasticSearch
+                const updateParam: RequestParams.Update = {
+                    id: hits[0]._id,
+                    index: 'lights',
+                    body: { doc: { id: msg.data.id, state: false } }
+                };
+                // console.log(docParam)
 
-//             default:
-//                 break;
-//         }
-//     }
-// }
+                let updateElastic = await elastic_Client.update(updateParam)
+
+                return updateElastic
+
+            }
+                break
+
+            default:
+                break;
+        }
+    }
+    subscribe(
+        {
+            streamName: "lightbulb"
+        },
+        handle
+    );
+}
+
+async function searchElasticObj(msg: LightBulbEvents) {
+
+    try {
+        const { body } = await elastic_Client.search({
+            index: 'lights',
+            // type: '_doc', // uncomment this line if you are using Elasticsearch ≤ 6
+            body: {
+                query: {
+                    match: { id: msg.data.id }
+                }
+            }
+        })
+
+        return { body }
+    } catch (err) {
+        return err;
+    }
+}
+async function createElasticIndex(msg: LightBulbEvents) {
+
+    try {
+        const { body } = await elastic_Client.index({
+            index: "lights",
+            body: {
+                id: msg.data.id,
+                state: false
+            }
+        });
+        return { body }
+
+    } catch (error) {
+        return error
+    }
+}
