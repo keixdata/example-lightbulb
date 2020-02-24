@@ -162,10 +162,7 @@ export async function saveOnElastic() {
                     console.log(newIndex)
                 } else {
                     console.log(type, body.hits.hits)
-                    // const  deleteObj  = await elastic_Client.indices.delete({
-                    //     index: 'lights',
-                    // })
-                    // console.log(deleteObj)
+
                 }
                 break;
             }
@@ -184,7 +181,7 @@ export async function saveOnElastic() {
 
             }
             case "LIGHT_TURNED_OFF": {
-                /**AGGIORNO LO STATE A FALSE*/     
+                /**AGGIORNO LO STATE A FALSE*/
 
                 let elasticSearch = await searchElasticObj(msg);
                 const { body: { hits: { hits } } } = elasticSearch
@@ -225,7 +222,7 @@ async function searchElasticObj(msg: LightBulbEvents) {
                     match: { id: msg.data.id }
                 }
             }
-        })
+        });
 
         return { body }
     } catch (err) {
